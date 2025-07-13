@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema(
     {
@@ -51,6 +53,24 @@ const userSchema = new mongoose.Schema(
         timestamps: true    // it automatically adds createdAt, updatedAt properties to data (an utility provided by Mongoose)
     }
 )
+
+userSchema.methods.getJWT = function () {
+    const user = this;   // Here this refers to that Particular instance (User)
+
+    const token = jwt.sign({_id: user._id}, "DevTinder@gh56$hj7", {
+        expiresIn: "7d",
+    })
+    return token;
+}
+
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
+    const user = this;
+    const hashedPassword = user.password;
+    
+    const isPasswordValid = await bcrypt.compare(passwordInputByUser, hashedPassword);
+
+    return isPasswordValid;
+}
 
 // const userModel = mongoose.model("User", userSchema);   // customName, Schema
 
