@@ -12,7 +12,7 @@ userRouter.get("/requests/received", userAuth, async (req, res) => {
 
         const data = await ConnectionRequest.find(
             {toUserId: loggedInUser._id, status: "interested"}
-        ).populate("fromUserId", "firstName lastName");
+        ).populate("fromUserId", "firstName lastName about photoUrl");
 
         res.json({message: "Data fetched successfully", data});
 
@@ -31,8 +31,8 @@ userRouter.get("/connections", userAuth, async (req, res) => {
                 {fromUserId: loggedInUser._id, status: "accepted"},
                 {toUserId: loggedInUser._id, status: "accepted"}
             ]
-        }).populate("fromUserId", "firstName lastName about")
-        .populate("toUserId", "firstName lastName about");
+        }).populate("fromUserId", "firstName lastName about photoUrl")
+        .populate("toUserId", "firstName lastName about photoUrl");
 
         const data = connectionRequests.map(row => {
             if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
@@ -77,7 +77,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
                 {_id: {$nin: Array.from(hideUsersFromFeed)}},
                 {_id: {$ne: loggedInUser._id}}
             ]
-        }).select("firstName lastName about").skip(skipValue).limit(limit);
+        }).select("firstName lastName about age gender photoUrl").skip(skipValue).limit(limit);
 
         // localhost:3555/user/feed?page=2&limit=2     // localhost:3555/user/feed
         res.json({message: "Feed fetched successfully", users});

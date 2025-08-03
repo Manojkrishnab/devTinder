@@ -1,25 +1,28 @@
 const express = require('express');
 const User = require('../models/user');
-const {validateSignUpData} = require("../utils/validation");
+const { validateSignUpData } = require("../utils/validation");
 const bcrypt = require("bcrypt");
 
 const authRouter = express.Router();
 
-authRouter.post("/login", async (req,res) => {
-    const {emailId,password} = req.body;
+authRouter.post("/login", async (req, res) => {
+    const { emailId, password } = req.body;
     try {
-        const user = await User.findOne({emailId: emailId});
+        const user = await User.findOne({ emailId: emailId });
         if (!user) {
-            throw new Error("Invalid Credentials");
+            return res.status(401).json({ message: "Invalid Login Credentials" });
         }
 
         const isPasswordValid = await user.validatePassword(password);  // schema method
         if (isPasswordValid) {
             const accessToken = user.getJWT();
-            res.cookie("token", accessToken)
-            .send("Login Successfull..!!");
+            res.cookie("token", accessToken, {
+                httpOnly: true,
+                maxAge: 60 * 60 * 1000    // 1 hour in milliseconds
+            })
+                .json({ message: "Login Success..!!", data: user });
         } else {
-            res.send("Invalid Credentials");
+            return res.status(401).json({ message: "Invalid Login Credentials" });
         }
 
     } catch (error) {
@@ -30,20 +33,25 @@ authRouter.post("/login", async (req,res) => {
 authRouter.post("/signup", async (req, res) => {
     try {
         validateSignUpData(req);
-        const {firstName, lastName, emailId, password} = req.body;
-        const hashedPassword = await bcrypt.hash(password,10);
+        const { firstName, lastName, emailId, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
         const user = new User({
-            firstName, lastName, emailId, 
+            firstName, lastName, emailId,
             password: hashedPassword
         });
-        await user.save();  // to insert data into database
-        res.send("User Added Successfully...!!!");
+        const savedUser = await user.save();  // to insert data into database
+        const accessToken = savedUser.getJWT();
+        res.cookie("token", accessToken, {
+            httpOnly: true,
+            maxAge: 60 * 60 * 1000    // 1 hour in milliseconds
+        })
+        res.json({ message: "User Added Successfully", data: savedUser });
     } catch (err) {
         res.status(400).send("Error adding a user: " + err.message);
     }
 })
 
-authRouter.post("/logout", (req,res) => {
+authRouter.post("/logout", (req, res) => {
     res.cookie("token", null, {
         expires: new Date(Date.now())
     });
