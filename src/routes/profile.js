@@ -6,7 +6,8 @@ const { validateEditProfileData } = require('../utils/validation');
 
 // To get Profile details
 profileRouter.get("/view", userAuth, async (req, res) => {
-    const userProfile = req.user;
+    const userProfile = req.user.toObject(); // converts Mongoose doc to plain object
+    delete userProfile.password;
 
     try {
         res.send(userProfile);
@@ -18,7 +19,7 @@ profileRouter.get("/view", userAuth, async (req, res) => {
 // To edit Profile details
 profileRouter.patch('/edit', userAuth, async (req, res) => {
     try {
-        if (!validateEditProfileData) {
+        if (!validateEditProfileData(req)) {
             throw new Error("Edit not allowed");
         }
 
@@ -33,7 +34,7 @@ profileRouter.patch('/edit', userAuth, async (req, res) => {
         })
 
     } catch (error) {
-        res.send("Error: ", error.message);
+        res.send("Error: " + error.message);
     }
 })
 

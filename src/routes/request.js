@@ -5,6 +5,7 @@ const User = require('../models/user');
 
 const requestRouter = express.Router();
 
+// Ignore or Interested
 requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
     try {
         const fromUserId = req.user._id;
@@ -51,6 +52,7 @@ requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
     }
 })
 
+// Accept or Reject
 requestRouter.post("/review/:status/:requestId", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;

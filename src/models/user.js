@@ -58,7 +58,7 @@ userSchema.methods.getJWT = function () {
     const user = this;   // Here this refers to that Particular instance (User)
 
     const token = jwt.sign({_id: user._id}, "DevTinder@gh56$hj7", {
-        expiresIn: "7d",
+        expiresIn: "1h",
     })
     return token;
 }
